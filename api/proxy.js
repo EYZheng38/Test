@@ -1,8 +1,4 @@
-export const config = {
-  api: { bodyParser: false }
-};
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -12,23 +8,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const chunks = [];
-    for await (const chunk of req) {
-      chunks.push(chunk);
-    }
-    const rawBody = Buffer.concat(chunks).toString('utf-8');
-
-    if (!rawBody) {
-      return res.status(400).json({ error: 'empty body' });
-    }
-
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer sk-31fd8abee0c84f03ac26b486fc63d1b0',
       },
-      body: rawBody,
+      body: JSON.stringify(req.body),
     });
 
     const text = await response.text();
