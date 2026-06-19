@@ -13,6 +13,10 @@ export default async function handler(req, res) {
       chunks.push(chunk);
     }
     const rawBody = Buffer.concat(chunks).toString('utf-8');
+    
+    if (!rawBody) {
+      return res.status(400).json({ error: 'empty body', received: rawBody });
+    }
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
