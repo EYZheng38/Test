@@ -8,13 +8,19 @@ export default async function handler(req, res) {
   }
 
   try {
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(chunk);
+    }
+    const rawBody = Buffer.concat(chunks).toString('utf-8');
+
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer sk-31fd8abee0c84f03ac26b486fc63d1b0',
       },
-      body: JSON.stringify(req.body),
+      body: rawBody,
     });
     const data = await response.json();
     return res.status(200).json(data);
