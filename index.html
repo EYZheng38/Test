@@ -258,7 +258,7 @@ async function submitTasks(){
   var prompt='你是一个职场新人任务管理助手。用户把今天收到的碎片消息发给你，请你：\n1. 从消息中识别出所有任务（忽略闲聊和无关信息）\n2. 用四象限法（紧急/重要）为每个任务分类：Q1紧急且重要、Q2重要不紧急、Q3紧急不重要、Q4不紧急不重要\n3. 判断每个任务的风险等级：high（即将delay或影响他人）、med（需关注）、low（无风险）\n4. 为风险高的任务生成一句跟进话术（用于回复相关人员）\n5. 如果已有台账，把新任务整合进去，已有任务保持原id不变\n'+existingJson+'\n\n新收到的消息：\n'+input+'\n\n严格只返回JSON，不要任何额外说明或markdown：\n{"tasks":[{"id":"唯一id如t1","name":"任务简称（10字内）","detail":"来源和具体要求（25字内）","quadrant":1,"deadline":"截止时间描述如周五/下周二/不明确","risk":"high|med|low","followup":"跟进话术（仅risk为high时填写，否则为空字符串）"}],"comment":"一句话总结今日任务情况和建议（30字内）"}';
 
   try{
-    var res=await fetch('https://api.deepseek.com/chat/completions',{
+    var res=await fetch('https://test-flax-chi-pna9nkxyuj.vercel.app/api/proxy',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
       body:JSON.stringify({model:'deepseek-chat',max_tokens:1500,messages:[{role:'user',content:prompt}]})
