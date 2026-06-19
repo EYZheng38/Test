@@ -334,7 +334,7 @@ function renderQ(id,items){
       +'<div class="tcard-main">'
       +'<div class="drag-handle" title="长按拖动"><i class="ti ti-grip-vertical" aria-hidden="true"></i></div>'
       +'<div class="tdot"></div>'
-      +'<div style="flex:1" onclick="openEdit(\''+t.id+'\')" style="cursor:pointer">'
+      +'<div style="flex:1;cursor:pointer" onclick="openEdit(\''+t.id+'\')">'
       +'<div class="tname"'+(t.done?' style="text-decoration:line-through;color:var(--text3)"':od?' style="color:var(--red-t)"':'')+'>'+escHtml(t.name)+(od?' <span style="font-size:10px;color:var(--red-t)">[逾期]</span>':'')+'</div>'
       +'<div class="tmeta">'+escHtml(t.deadline)+'</div>'
       +'</div>'
