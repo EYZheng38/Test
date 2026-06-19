@@ -1,8 +1,12 @@
+export const config = {
+  api: { bodyParser: false }
+};
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -13,9 +17,9 @@ export default async function handler(req, res) {
       chunks.push(chunk);
     }
     const rawBody = Buffer.concat(chunks).toString('utf-8');
-    
+
     if (!rawBody) {
-      return res.status(400).json({ error: 'empty body', received: rawBody });
+      return res.status(400).json({ error: 'empty body' });
     }
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
