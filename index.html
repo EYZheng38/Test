@@ -192,7 +192,9 @@ textarea::placeholder{color:var(--text3)}
     </div>
   </div>
 
-  <div class="ai-box" id="ai-comment"></div>
+  <div id="debug-box" style="background:#1a1a18;color:#39d353;font-family:monospace;font-size:11px;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;display:block">
+调试面板已加载，等待操作…
+  </div>
 </div>
 
 <!-- 编辑/调整优先级 modal -->
@@ -246,24 +248,36 @@ function switchTab(tab,el){
 
 var API_KEY = 'sk-31fd8abee0c84f03ac26b486fc63d1b0';
 
+function dbg(msg){
+  var box=document.getElementById('debug-box');
+  if(box) box.textContent+='\n'+new Date().toLocaleTimeString()+' '+msg;
+  console.log(msg);
+}
+
 async function submitTasks(){
   var input=document.getElementById('msg-input').value.trim();
-  if(!input) return;
+  dbg('按钮点击，输入长度：'+input.length);
+  if(!input){dbg('输入为空，退出');return;}
   var btn=document.getElementById('submit-btn'),bar=document.getElementById('loading-bar');
   btn.disabled=true;
   btn.innerHTML='<i class="ti ti-loader-2" aria-hidden="true"></i> 分析中…';
   bar.style.display='block';
+  dbg('开始请求 proxy…');
 
   var existingJson=tasks.length>0?'\n\n当前已有任务台账：'+JSON.stringify(tasks.map(function(t){return{id:t.id,name:t.name,quadrant:t.quadrant,deadline:t.deadline,risk:t.risk}})):'';
   var prompt='你是一个职场新人任务管理助手。用户把今天收到的碎片消息发给你，请你：\n1. 从消息中识别出所有任务（忽略闲聊和无关信息）\n2. 用四象限法（紧急/重要）为每个任务分类：Q1紧急且重要、Q2重要不紧急、Q3紧急不重要、Q4不紧急不重要\n3. 判断每个任务的风险等级：high（即将delay或影响他人）、med（需关注）、low（无风险）\n4. 为风险高的任务生成一句跟进话术（用于回复相关人员）\n5. 如果已有台账，把新任务整合进去，已有任务保持原id不变\n'+existingJson+'\n\n新收到的消息：\n'+input+'\n\n严格只返回JSON，不要任何额外说明或markdown：\n{"tasks":[{"id":"唯一id如t1","name":"任务简称（10字内）","detail":"来源和具体要求（25字内）","quadrant":1,"deadline":"截止时间描述如周五/下周二/不明确","risk":"high|med|low","followup":"跟进话术（仅risk为high时填写，否则为空字符串）"}],"comment":"一句话总结今日任务情况和建议（30字内）"}';
 
   try{
+    dbg('发送 fetch 请求…');
     var res=await fetch('https://test-flax-chi-pna9nkxyuj.vercel.app/api/proxy',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'deepseek-chat',max_tokens:1500,messages:[{role:'user',content:prompt}]})
     });
-    var data=await res.json();
+    dbg('收到响应，status：'+res.status);
+    var rawText=await res.text();
+    dbg('原始响应：'+rawText.substring(0,300));
+    var data=JSON.parse(rawText);
     var text=data.choices[0].message.content.replace(/```json|```/g,'').trim();
     var parsed=JSON.parse(text);
     var newIds=new Set(parsed.tasks.map(function(t){return t.id}));
@@ -278,13 +292,13 @@ async function submitTasks(){
     tasks=merged;
     renderAll();
     var c=document.getElementById('ai-comment');
-    c.style.display='block';
-    c.innerHTML='<i class="ti ti-robot" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:6px;color:var(--text3)"></i>'+(parsed.comment||'');
+    if(c){c.style.display='block';c.innerHTML='<i class="ti ti-robot" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:6px;color:var(--text3)"></i>'+(parsed.comment||'');}
     document.getElementById('msg-input').value='';
+    dbg('完成！任务数：'+tasks.length);
   }catch(e){
+    dbg('错误：'+e.message);
     var c=document.getElementById('ai-comment');
-    c.style.display='block';
-    c.textContent='请求失败，请检查网络或API Key：'+e.message;
+    if(c){c.style.display='block';c.textContent='请求失败：'+e.message;}
   }
   btn.disabled=false;
   btn.innerHTML='<i class="ti ti-sparkles" aria-hidden="true"></i> 分析任务';
